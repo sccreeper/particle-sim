@@ -1,12 +1,11 @@
 #include <raylib.h>
 #include <iostream>
 #include <cstdint>
+#include "registry.h"
 
 int main() {
 
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_VSYNC_HINT);
-
-    InitWindow(400, 400, "Particle Sim");
+    InitWindow(640, 480, "Particle Sim");
 
     std::cout << "HELLPPP" << std::endl;
 
