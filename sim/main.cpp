@@ -1,7 +1,7 @@
 #include <raylib.h>
 #include <iostream>
 #include <cstdint>
-#include "registry.h"
+#include "registry.hpp"
 
 int main() {
 

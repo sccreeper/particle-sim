@@ -24,7 +24,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(raylib)
 
 add_executable(${PROJECT_NAME} sim/main.cpp
-    sim/materials.h
-    sim/registry.h)
+    sim/materials.hpp
+    sim/registry.hpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
