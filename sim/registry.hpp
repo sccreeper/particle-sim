@@ -1,6 +1,9 @@
+#pragma once
+
 #include <cstdint>
 #include <vector>
 #include <stdexcept>
+#include <generator>
 
 template <typename T>
 class Registry
@@ -59,6 +62,17 @@ public:
         firstFree = id;
 
         return id;
+    }
+
+    std::generator<T &> items()
+    {
+        for (auto &slot : registry)
+        {
+            if (slot.active)
+            {
+                co_yield slot.item;
+            }
+        }
     }
 
 private:

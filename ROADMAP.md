@@ -21,3 +21,5 @@ Possible features to be implemented, not a fully accurate simulation but "good e
 - [ ]  Selecting different particles in the UI  
 - [ ]  Explosions
 - [ ]  Using multithreading to simulate different parts of the screen at once
+- [ ]  Break solids if hit by a gas particle with enough kinetic energy
+- [ ]  Gas particles disappear if not collided with another particle in a defined time.
