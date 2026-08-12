@@ -27,4 +27,10 @@ namespace utils {
         return (y * width) + x;
     };
 
+    namespace shapes {
+
+        
+
+    }
+
 }

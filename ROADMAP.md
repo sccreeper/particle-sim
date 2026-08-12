@@ -7,8 +7,8 @@ Possible features to be implemented, not a fully accurate simulation but "good e
   - [ ] Colours/visual properties for respective states
     - [ ] Colour
     - [ ] Transparencies
-  - [ ] Name
-  - [ ] Mass for individual particle
+  - [ x ] Name
+  - [ x ] Mass for individual particle
   - [ ] Solubility
   - [ ] Flammable
   - [ ] Ignition point
@@ -23,3 +23,4 @@ Possible features to be implemented, not a fully accurate simulation but "good e
 - [ ]  Using multithreading to simulate different parts of the screen at once
 - [ ]  Break solids if hit by a gas particle with enough kinetic energy
 - [ ]  Gas particles disappear if not collided with another particle in a defined time.
+- [ ]  Controlling simulation speed

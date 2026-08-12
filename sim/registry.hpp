@@ -39,7 +39,7 @@ public:
         return index;
     }
 
-    T *getItem(int16_t id)
+    T &getItem(int16_t id)
     {
 
         if (id < 0 || id >= registry.size() || !registry[id].active)
@@ -47,7 +47,7 @@ public:
             throw std::runtime_error("Cannot fetch invalid or inactive item.");
         }
 
-        return &registry[id].item;
+        return registry[id].item;
     }
 
     int16_t removeItem(int16_t id)

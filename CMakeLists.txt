@@ -29,6 +29,9 @@ add_executable(${PROJECT_NAME} sim/main.cpp
     sim/simulation.hpp
     sim/simulation.cpp
     sim/utils.hpp
-    sim/utils.cpp)
+    sim/utils.cpp
+    sim/materials.cpp
+    sim/logging.hpp
+    sim/logging.cpp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
