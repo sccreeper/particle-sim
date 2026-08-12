@@ -37,9 +37,11 @@ namespace sim
         Registry<mat::Material> materialRegistry;
     private:
         std::vector<mat::Particle> particles;
+        std::vector<bool> movedThisTick; // separate array for the purposes of fast clearing
         std::vector<uint8_t> pixelBuffer;
         size_t width;
         size_t height;
+        bool leftToRight = false;
 
         uint64_t randomBitBuffer;
         std::mt19937_64 rng;

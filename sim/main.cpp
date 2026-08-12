@@ -20,8 +20,6 @@ int main()
     simulation.printDebugInfo();
     auto renderTexture = LoadRenderTexture(SIM_WIDTH, SIM_HEIGHT);
 
-    int64_t counter = 0;
-
     uint16_t selectedMaterial = 0;
 
     int toolOriginX = 0;

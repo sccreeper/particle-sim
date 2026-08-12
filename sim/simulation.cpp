@@ -5,6 +5,7 @@
 #include <utility>
 #include <random>
 #include <algorithm>
+#include <cstring>
 
 namespace sim
 {
@@ -63,120 +64,138 @@ namespace sim
 
         this->particles.resize(width * height, mat::Particle{.temperature = ambientTemperature, .occupied = false});
         this->pixelBuffer.resize(width * height * 4, 0x000000FF);
+        this->movedThisTick.resize(width * height, false);
     }
 
     void Simulation::tick()
     {
 
-        for (size_t i = 0; i < particles.size(); i++)
-        {
+        this->leftToRight = !(this->leftToRight);
 
-            if (particles[i].occupied)
+        std::fill(movedThisTick.begin(), movedThisTick.end(), false);
+
+        for (size_t row = 0; row < height; row++)
+        {
+            for (size_t col = 0; col < width; col++)
             {
 
-                int64_t x = utils::idxToX(i, this->width);
-                int64_t y = utils::idxToY(i, this->width);
+                int64_t x = this->leftToRight ? col : (width - 1 - col);
+                size_t i = utils::xyToIdx(x, row, width);
 
-                switch (particles[i].state)
+                if (particles[i].occupied && !movedThisTick[i])
                 {
-                case mat::Liquid:
-                {
-                    int deltaX = 0;
-                    bool moveX = this->coinFlip();
 
-                    if (moveX)
+                    int64_t y = row;
+
+                    switch (particles[i].state)
                     {
-                        bool direction = this->coinFlip();
-                        deltaX = direction ? 1 : -1;
+                    case mat::Liquid:
+                    {
+                        int deltaX = 0;
+                        bool moveX = this->coinFlip();
 
-                        if (x + deltaX < 0 || x + deltaX >= width)
+                        if (moveX)
                         {
-                            deltaX *= -1;
+                            bool direction = this->coinFlip();
+                            deltaX = direction ? 1 : -1;
+
+                            if (x + deltaX < 0 || x + deltaX >= static_cast<int64_t>(width))
+                            {
+                                deltaX *= -1;
+                            }
                         }
-                    }
 
-                    int deltaY = 0;
-                    if (y + 1 < height)
-                        deltaY = +1;
-
-                    // Always prioritise y down
-                    if (canSwap(x, y + deltaY, i))
-                    {
-                        std::swap(particles[i], particles[utils::xyToIdx(x, y + deltaY, this->width)]);
-                    }
-                    else if (canSwap(x + deltaX, y + deltaY, i))
-                    {
-                        std::swap(particles[i], particles[utils::xyToIdx(x + deltaX, y + deltaY, this->width)]);
-                    }
-
-                    break;
-                }
-                case mat::Solid:
-                {
-                    if (!materialRegistry.getItem(particles[i].materialId).hasStructure)
-                    {
                         int deltaY = 0;
-                        if (y + 1 < height)
+                        if (y + 1 < static_cast<int64_t>(height))
                             deltaY = +1;
 
+                        // Always prioritise y down
                         if (canSwap(x, y + deltaY, i))
                         {
+                            movedThisTick[i] = true;
                             std::swap(particles[i], particles[utils::xyToIdx(x, y + deltaY, this->width)]);
-                            break;
+                        }
+                        else if (canSwap(x + deltaX, y + deltaY, i))
+                        {
+                            movedThisTick[i] = true;
+                            std::swap(particles[i], particles[utils::xyToIdx(x + deltaX, y + deltaY, this->width)]);
                         }
 
-                        deltaY = 0;
-                        if (y + 2 < height)
-                            deltaY = +2;
-                        if (deltaY == 0)
-                            break;
-
-                        uint8_t possibleSides = 0b00;
-                        if (!(x + -1 < 0) && canSwap(x + -1, y + deltaY, i))
-                            possibleSides |= 0b10;
-                        if (x + 1 < this->width && canSwap(x + 1, y + deltaY, i))
-                            possibleSides |= 0b01;
-
-                        if (possibleSides == 0b11)
+                        break;
+                    }
+                    case mat::Solid:
+                    {
+                        if (!materialRegistry.getItem(particles[i].materialId).hasStructure)
                         {
-                            if (coinFlip())
+                            int deltaY = 0;
+                            if (y + 1 < static_cast<int64_t>(height))
+                                deltaY = +1;
+
+                            if (canSwap(x, y + deltaY, i))
                             {
+                                movedThisTick[i] = true;
+                                std::swap(particles[i], particles[utils::xyToIdx(x, y + deltaY, this->width)]);
+                                break;
+                            }
+
+                            deltaY = 0;
+                            if (y + 2 < static_cast<int64_t>(height))
+                                deltaY = +2;
+                            if (deltaY == 0)
+                                break;
+
+                            uint8_t possibleSides = 0b00;
+                            if (!(x + -1 < 0) && canSwap(x + -1, y + deltaY, i))
+                                possibleSides |= 0b10;
+                            if (x + 1 < static_cast<int64_t>(this->width) && canSwap(x + 1, y + deltaY, i))
+                                possibleSides |= 0b01;
+
+                            if (possibleSides == 0b11)
+                            {
+                                if (coinFlip())
+                                {
+                                    movedThisTick[i] = true;
+                                    std::swap(particles[i], particles[utils::xyToIdx(x + -1, y + deltaY, this->width)]);
+                                }
+                                else
+                                {
+                                    movedThisTick[i] = true;
+                                    std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + deltaY, this->width)]);
+                                }
+                            }
+                            else if (possibleSides & 0b10)
+                            {
+                                movedThisTick[i] = true;
                                 std::swap(particles[i], particles[utils::xyToIdx(x + -1, y + deltaY, this->width)]);
                             }
-                            else
+                            else if (possibleSides & 0b01)
                             {
+                                movedThisTick[i] = true;
                                 std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + deltaY, this->width)]);
                             }
                         }
-                        else if (possibleSides & 0b10)
-                        {
-                            std::swap(particles[i], particles[utils::xyToIdx(x + -1, y + deltaY, this->width)]);
-                        }
-                        else if (possibleSides & 0b01)
-                        {
-                            std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + deltaY, this->width)]);
-                        }
+
+                        break;
                     }
-                    
-                    break;
-                }
-                case mat::Gas:
-                {
-                    bool leftRight = coinFlip();
-                    bool topBottom = coinFlip();
-
-                    int deltaX = leftRight ? 1 : -1;
-                    int deltaY = topBottom ? 1 : -1;
-
-                    if (canSwap(x + deltaX, y + deltaY, i))
+                    case mat::Gas:
                     {
-                        std::swap(particles[i], particles[utils::xyToIdx(x + deltaX, y + deltaY, width)]);
-                    }
+                        bool leftRight = coinFlip();
+                        bool topBottom = coinFlip();
 
-                    break;
-                }
-                default:
-                    break;
+                        int deltaX = leftRight ? 1 : -1;
+                        int deltaY = topBottom ? 1 : -1;
+
+                        if (canSwap(x + deltaX, y + deltaY, i))
+                        {
+                            movedThisTick[i] = true;
+                            std::swap(particles[i], particles[utils::xyToIdx(x + deltaX, y + deltaY, width)]);
+                        }
+
+                        break;
+                    }
+                    default:
+                        break;
+                    }
                 }
             }
         }
@@ -211,7 +230,7 @@ namespace sim
     bool Simulation::canSwap(int x, int y, int idx)
     {
 
-        if (x < 0 || x >= width || y < 0 || y >= height)
+        if (x < 0 || static_cast<size_t>(x) >= width || y < 0 || static_cast<size_t>(y) >= height)
         {
             return false;
         }

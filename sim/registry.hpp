@@ -42,7 +42,7 @@ public:
     T &getItem(int16_t id)
     {
 
-        if (id < 0 || id >= registry.size() || !registry[id].active)
+        if (id < 0 || static_cast<size_t>(id) >= registry.size() || !registry[id].active)
         {
             throw std::runtime_error("Cannot fetch invalid or inactive item.");
         }
