@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <generator>
+#include <algorithm>
 
 template <typename T>
 class Registry
@@ -35,7 +36,10 @@ public:
         registry.push_back({item,
                             -1,
                             true});
-
+        
+        this->allIds.push_back(index); 
+        std::sort(allIds.begin(), allIds.end());
+        
         return index;
     }
 
@@ -61,6 +65,8 @@ public:
         registry[id].nextFree = firstFree;
         firstFree = id;
 
+        std::erase(allIds, id);
+
         return id;
     }
 
@@ -75,6 +81,28 @@ public:
         }
     }
 
+    bool itemExists(int16_t id) {
+        if (id < 0 || id >= registry.size())
+        {
+            return false;
+        }
+
+        return registry[id].active;
+        
+    }
+
+    const std::vector<int16_t> &ids() {
+        return this->allIds;        
+    }
+
+    int16_t getFirst() {
+        return this->allIds[0];
+    }
+
+    int16_t getLast() {
+        return this->allIds[this->allIds.size() - 1];
+    }
+
 private:
     struct Slot
     {
@@ -84,5 +112,6 @@ private:
     };
 
     std::vector<Slot> registry;
+    std::vector<int16_t> allIds;
     int16_t firstFree;
 };

@@ -37,9 +37,42 @@ int main()
         {
             paused = !paused;
         }
-        else if (paused && IsKeyPressed(KEY_T))
+        else if (paused && IsKeyPressed(KEY_Q))
         {
             simulation.tick();
+        }
+
+        bool fPressed = IsKeyPressed(KEY_F);
+        bool gPressed = IsKeyPressed(KEY_G);
+        if (fPressed || gPressed)
+        {
+
+            bool goRight = fPressed;
+
+            if (goRight && selectedMaterial == simulation.materialRegistry.getLast())
+            {
+                selectedMaterial = simulation.materialRegistry.getFirst();
+            }
+            else if (!goRight && selectedMaterial == simulation.materialRegistry.getFirst())
+            {
+                selectedMaterial = simulation.materialRegistry.getLast();
+            }
+            else
+            {
+                int newId = static_cast<int>(selectedMaterial) + (goRight ? 1 : -1);
+                while (!std::ranges::contains(simulation.materialRegistry.ids(), newId))
+                {
+                    if (static_cast<int>(selectedMaterial) - 1 < simulation.materialRegistry.getFirst())
+                    {
+                        newId = simulation.materialRegistry.getLast();
+                        continue;
+                    }
+
+                    newId = newId + (goRight ? 1 : -1);
+                }
+
+                selectedMaterial = static_cast<uint16_t>(newId);
+            }
         }
 
         if (!paused)
