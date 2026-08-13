@@ -1,8 +1,10 @@
 #include "simulation.hpp"
 
 #include <algorithm>
+#include <chrono>
 #include <cstring>
 #include <format>
+#include <mutex>
 #include <random>
 #include <string>
 #include <utility>
@@ -70,7 +72,78 @@ namespace sim {
         this->movedThisTick.resize(width * height, false);
     }
 
+    Simulation::~Simulation() { stop(); }
+
+    // Brief overview of the threading logic
+    // See explanations for each method below
+    //
+    // The paused variable is a standard bool so it can be passed to the conditional variable. The CV checks
+    // this first before going to sleep, and wakes when it is notified.
+    // The other variables are atomic so they can be accessed without mutexes.
+    // isThreadRunning tells us wether or not the thread should be running.
+    // isPausedAtomic is a mirror of isPaused, so it can be read externally requiring mutexes, otherwise the
+    // thread would be unnecessarily stalled.
+
+    // Starts the simulation from scratch.
+    void Simulation::start() {
+        isThreadRunning.store(true, std::memory_order_release);
+        simThread = std::thread([this] { runLoop(); });
+    }
+
+    // Pauses the thread, but doesn't stop it.
+    void Simulation::pause() {
+        std::lock_guard<std::mutex> lock(pausedMutex);
+        isPaused = true;
+        isPausedAtomic.store(isPaused, std::memory_order_release);
+    }
+
+    // Resumes the thread after pausing
+    void Simulation::resume() {
+        std::lock_guard<std::mutex> lock(pausedMutex);
+        isPaused = false;
+        isPausedAtomic.store(isPaused, std::memory_order_release);
+        resumeNotifier.notify_one();
+    }
+
+    // Completely stops the thread, also called on destruction.
+    void Simulation::stop() {
+        std::lock_guard<std::mutex> lock(pausedMutex);
+        isThreadRunning.store(false, std::memory_order_release);
+        isPaused = false;
+        isPausedAtomic.store(isPaused, std::memory_order_release);
+
+        resumeNotifier.notify_one();
+        if (simThread.joinable())
+            simThread.join();
+    }
+
+    // The thread method
+    // In this order we:
+    // 1. Check that the thread is supposed to be running
+    // 2. Lock the paused mutex for the purposes of the conditional_variable
+    // 3. After we exit the conditional variable, break if the thread is no longer running
+    // 4. Tick
+    // 5. Sleep the thread for 500us
+    void Simulation::runLoop() {
+        while (isThreadRunning.load(std::memory_order_acquire)) {
+            std::unique_lock<std::mutex> lock(pausedMutex);
+            resumeNotifier.wait(lock, [this] { return !isPaused || !isThreadRunning; });
+
+            if (!isThreadRunning.load(std::memory_order_acquire))
+                break;
+
+            lock.unlock();
+
+            tick();
+
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
+    }
+
+    bool Simulation::getIsPaused() { return isPausedAtomic.load(std::memory_order_acquire); }
+
     void Simulation::tick() {
+        std::lock_guard<std::mutex> lock(particleAccessMutex);
 
         this->leftToRight = !(this->leftToRight);
 
@@ -180,6 +253,24 @@ namespace sim {
         }
     }
 
+    void Simulation::updatePixelBuffer() {
+        std::lock_guard<std::mutex> lock(particleAccessMutex);
+
+        for (size_t i = 0; i < this->particles.size(); i++) {
+            if (!this->particles[i].occupied) {
+                std::memset(pixelBuffer.data() + (i * 4), 0, 4);
+                continue;
+            }
+
+            uint32_t colour = materialRegistry.getItem(this->particles[i].materialId).colour;
+
+            this->pixelBuffer[(i * 4) + 0] = static_cast<uint8_t>((colour >> 24) & 0xFF);
+            this->pixelBuffer[(i * 4) + 1] = static_cast<uint8_t>((colour >> 16) & 0xFF);
+            this->pixelBuffer[(i * 4) + 2] = static_cast<uint8_t>((colour >> 8) & 0xFF);
+            this->pixelBuffer[(i * 4) + 3] = static_cast<uint8_t>(colour & 0xFF);
+        }
+    }
+
     const mat::Particle &Simulation::operator[](size_t idx) const {
         return particles.at(static_cast<size_t>(idx));
     }
@@ -229,22 +320,6 @@ namespace sim {
         }
 
         return false;
-    }
-
-    void Simulation::updatePixelBuffer() {
-        for (size_t i = 0; i < this->particles.size(); i++) {
-            if (!this->particles[i].occupied) {
-                std::memset(pixelBuffer.data() + (i * 4), 0, 4);
-                continue;
-            }
-
-            uint32_t colour = materialRegistry.getItem(this->particles[i].materialId).colour;
-
-            this->pixelBuffer[(i * 4) + 0] = static_cast<uint8_t>((colour >> 24) & 0xFF);
-            this->pixelBuffer[(i * 4) + 1] = static_cast<uint8_t>((colour >> 16) & 0xFF);
-            this->pixelBuffer[(i * 4) + 2] = static_cast<uint8_t>((colour >> 8) & 0xFF);
-            this->pixelBuffer[(i * 4) + 3] = static_cast<uint8_t>(colour & 0xFF);
-        }
     }
 
     const uint8_t *Simulation::getPixelBuffer() { return this->pixelBuffer.data(); }

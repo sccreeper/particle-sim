@@ -18,6 +18,11 @@ const int SIM_HEIGHT        = 512;
 const int DEFAULT_FONT_SIZE = 16;
 
 int main() {
+#ifdef NDEBUG
+    logging::message("Running in release");
+#else
+    logging::message("Running in debug", logging::Debug);
+#endif
 
     InitWindow(SIM_WIDTH, SIM_HEIGHT, "Particle Sim");
 
@@ -31,17 +36,25 @@ int main() {
     int  toolOriginY   = 0;
     bool toolBeingUsed = false;
 
-    bool paused = true;
-
     SetTargetFPS(60);
+
+    simulation.start();
 
     while (!WindowShouldClose()) {
         // Handle keypresses
         if (IsKeyPressed(KEY_SPACE)) {
-            paused = !paused;
-        } else if (paused && IsKeyPressed(KEY_Q)) {
-            simulation.tick();
+            logging::message(std::format("{}", simulation.getIsPaused()));
+
+            if (simulation.getIsPaused()) {
+                logging::message("Paused, resuming");
+                simulation.resume();
+            } else {
+                simulation.pause();
+            }
         }
+        // else if (paused && IsKeyPressed(KEY_Q)) {
+        //     simulation.tick();
+        // }
 
         bool rPressed = IsKeyPressed(KEY_R);
         bool tPressed = IsKeyPressed(KEY_T);
@@ -68,12 +81,7 @@ int main() {
             }
         }
 
-        if (!paused) {
-            simulation.tick();
-        }
         simulation.updatePixelBuffer();
-
-        // Update render texture
         rlUpdateTexture(renderTexture.texture.id, 0, 0, SIM_WIDTH, SIM_WIDTH,
                         RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, simulation.getPixelBuffer());
 
@@ -84,7 +92,7 @@ int main() {
 
         DrawTexture(renderTexture.texture, 0, 0, WHITE);
         DrawText(std::format("Material: {} \n{}", simulation.materialRegistry.getItem(selectedMaterial).name,
-                             paused ? "Paused" : "Running")
+                             simulation.getIsPaused() ? "Paused" : "Running")
                      .c_str(),
                  10, 10, DEFAULT_FONT_SIZE, WHITE);
 

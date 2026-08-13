@@ -1,28 +1,21 @@
 SortIncludes: true
-IncludeBlocks: Regroup   # forces blank-line separation + sorting across groups
+IncludeBlocks: Regroup
 IncludeCategories:
-  # 1. Standard library headers (e.g. <vector>, <string>)
   - Regex:           '^<[a-z_]+>$'
     Priority:        1
     SortPriority:    1
-
-  # 2. Third-party libraries (bracket-style, not stdlib, e.g. <boost/...>, <fmt/...>)
   - Regex:           '^<.*>$'
     Priority:        2
     SortPriority:    2
-
-  # 3. Project headers (quoted, e.g. "myproject/foo.h")
   - Regex:           '^".*"$'
     Priority:        3
     SortPriority:    3
 
-  # Main header for the .cpp file always goes first (clang-format does this by default with IncludeIsMainRegex)
 IncludeIsMainRegex: '(Test)?$'
 
 IndentWidth: 4
 TabWidth: 4
 UseTab: Never
-AccessModifier: -4
 ContinuationIndentWidth: 4
 NamespaceIndentation: All
 IndentCaseLabels: false
@@ -42,3 +35,5 @@ AlignConsecutiveAssignments:
   AcrossComments: false
 
 AlignConsecutiveBitFields: true
+
+IndentPPDirectives: BeforeHash

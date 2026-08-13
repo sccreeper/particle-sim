@@ -1,11 +1,14 @@
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <cstdint>
+#include <cstring>
+#include <mutex>
 #include <random>
+#include <thread>
 #include <utility>
 #include <vector>
-
-#include <stddef.h>
 
 #include "materials.hpp"
 #include "registry.hpp"
@@ -19,7 +22,7 @@ namespace sim {
 
       public:
         Simulation(size_t width, size_t height);
-        ~Simulation() = default;
+        ~Simulation();
         void                 tick();
         void                 updatePixelBuffer();
         const uint8_t       *getPixelBuffer();
@@ -42,8 +45,15 @@ namespace sim {
 
         Registry<mat::Material> materialRegistry;
 
+        void start();
+        void pause();
+        void resume();
+        void stop();
+        bool getIsPaused();
+
       private:
         std::vector<mat::Particle> particles;
+        std::mutex                 particleAccessMutex;
         std::vector<bool>          movedThisTick; // separate array for the
                                                   // purposes of fast clearing
         std::vector<uint8_t> pixelBuffer;
@@ -59,6 +69,15 @@ namespace sim {
         uint64_t        randomBitBuffer;
         std::mt19937_64 rng;
         int             bitsLeft = 0;
+
+        bool                    isPaused = true;
+        std::atomic_bool        isPausedAtomic{true};
+        std::mutex              pausedMutex;
+        std::atomic_bool        isThreadRunning{false};
+        std::condition_variable resumeNotifier;
+        std::thread             simThread;
+
+        void runLoop();
     };
 
 }; // namespace sim
