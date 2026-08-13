@@ -2,7 +2,6 @@
 #include <cmath>
 #include <cstdint>
 #include <format>
-#include <iostream>
 #include <string>
 
 #include <raylib.h>
