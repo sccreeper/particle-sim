@@ -24,3 +24,10 @@ Possible features to be implemented, not a fully accurate simulation but "good e
 - [ ]  Break solids if hit by a gas particle with enough kinetic energy
 - [ ]  Gas particles disappear if not collided with another particle in a defined time.
 - [ ]  Controlling simulation speed
+- [ ]  
+
+# Requirements
+
+- CMake
+- IWYU
+- GCC >= 16.1.1

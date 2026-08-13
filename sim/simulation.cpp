@@ -6,6 +6,8 @@
 #include <random>
 #include <algorithm>
 #include <cstring>
+#include <format>
+#include <string>
 
 namespace sim
 {
@@ -100,53 +102,46 @@ namespace sim
                         // Always prioritise y down
                         if (canSwap(x, y + 1, i))
                         {
-                            movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x, y + 1, this->width)]);
+                            move(i, x, y + 1);
                         }
                         else if (canGoDownLeft && canGoDownRight)
                         {
                             if (coinFlip())
                             {
-                                movedThisTick[i] = true;
-                                std::swap(particles[i], particles[utils::xyToIdx(x - 1, y + 1, this->width)]);
+                                move(i, x - 1, y + 1);
                             }
                             else
                             {
-                                movedThisTick[i] = true;
-                                std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + 1, this->width)]);
+                                move(i, x + 1, y + 1);
                             }
                         }
                         else if (canGoDownLeft)
                         {
-                            movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x - 1, y + 1, this->width)]);
+                            move(i, x - 1, y + 1);
                         }
                         else if (canGoDownRight)
                         {
-                            movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + 1, this->width)]);
-                        } else if (canGoLeft && canGoRight)
+                            move(i, x + 1, y + 1);
+                        }
+                        else if (canGoLeft && canGoRight)
                         {
                             if (coinFlip())
                             {
-                                movedThisTick[i] = true;
-                                std::swap(particles[i], particles[utils::xyToIdx(x - 1, y, this->width)]);
-                            } else {
-                                movedThisTick[i] = true;
-                                std::swap(particles[i], particles[utils::xyToIdx(x + 1, y, this->width)]);
+                                move(i, x - 1, y);
                             }
-                            
-                        } else if (canGoLeft)
-                        {
-                            movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x - 1, y, this->width)]);
-                        } else if (canGoRight) {
-                            movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x + 1, y, this->width)]);
+                            else
+                            {
+                                move(i, x + 1, y);
+                            }
                         }
-                        
-                        
-                        
+                        else if (canGoLeft)
+                        {
+                            move(i, x - 1, y);
+                        }
+                        else if (canGoRight)
+                        {
+                            move(i, x + 1, y);
+                        }
 
                         break;
                     }
@@ -160,8 +155,7 @@ namespace sim
 
                             if (canSwap(x, y + deltaY, i))
                             {
-                                movedThisTick[i] = true;
-                                std::swap(particles[i], particles[utils::xyToIdx(x, y + deltaY, this->width)]);
+                                move(i, x, y + deltaY);
                                 break;
                             }
 
@@ -181,24 +175,20 @@ namespace sim
                             {
                                 if (coinFlip())
                                 {
-                                    movedThisTick[i] = true;
-                                    std::swap(particles[i], particles[utils::xyToIdx(x + -1, y + deltaY, this->width)]);
+                                    move(i, x - 1, y + deltaY);
                                 }
                                 else
                                 {
-                                    movedThisTick[i] = true;
-                                    std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + deltaY, this->width)]);
+                                    move(i, x + 1, y + deltaY);
                                 }
                             }
                             else if (possibleSides & 0b10)
                             {
-                                movedThisTick[i] = true;
-                                std::swap(particles[i], particles[utils::xyToIdx(x + -1, y + deltaY, this->width)]);
+                                move(i, x - 1, y + deltaY);
                             }
                             else if (possibleSides & 0b01)
                             {
-                                movedThisTick[i] = true;
-                                std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + deltaY, this->width)]);
+                                move(i, x + 1, y + deltaY);
                             }
                         }
 
@@ -214,8 +204,7 @@ namespace sim
 
                         if (canSwap(x + deltaX, y + deltaY, i))
                         {
-                            movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x + deltaX, y + deltaY, width)]);
+                            move(i, x + deltaX, y + deltaY);
                         }
 
                         break;

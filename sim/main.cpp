@@ -6,6 +6,11 @@
 #include "simulation.hpp"
 #include "logging.hpp"
 #include <format>
+#include <algorithm>
+#include <cmath>
+#include <stdlib.h>
+#include <string>
+#include "materials.hpp"
 
 const int SIM_WIDTH = 512;
 const int SIM_HEIGHT = 512;

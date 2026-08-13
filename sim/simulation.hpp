@@ -4,7 +4,10 @@
 #include <cstdint>
 #include "materials.hpp"
 #include "registry.hpp"
+#include "utils.hpp"
 #include <random>
+#include <utility>
+#include <stddef.h>
 
 namespace sim
 {
@@ -42,6 +45,14 @@ namespace sim
         size_t width;
         size_t height;
         bool leftToRight = false;
+
+        inline void move(size_t srcIdx, int64_t destX, int64_t destY) {
+            std::swap(
+                particles[srcIdx], 
+                particles[utils::xyToIdx(destX, destY, width)]
+            );
+            movedThisTick[utils::xyToIdx(destX, destY, width)] = true;
+        };
 
         uint64_t randomBitBuffer;
         std::mt19937_64 rng;

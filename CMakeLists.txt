@@ -9,6 +9,13 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)
 
+find_program(IWYU_EXE NAMES include-what-you-use iwyu)
+if(IWYU_EXE)
+    set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU_EXE})
+else()
+    message(STATUS "include-what-you-use not found, skipping IWYU checks")
+endif()
+
 include(FetchContent)
 
 set(CUSTOMIZE_BUILD ON CACHE BOOL "" FORCE)
