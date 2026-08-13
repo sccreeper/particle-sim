@@ -42,12 +42,14 @@ int main()
             simulation.tick();
         }
 
-        bool fPressed = IsKeyPressed(KEY_F);
-        bool gPressed = IsKeyPressed(KEY_G);
-        if (fPressed || gPressed)
+        bool rPressed = IsKeyPressed(KEY_R);
+        bool tPressed = IsKeyPressed(KEY_T);
+        if (rPressed || tPressed)
         {
 
-            bool goRight = fPressed;
+            std::cout << std::boolalpha << tPressed << std::endl;
+
+            bool goRight = rPressed;
 
             if (goRight && selectedMaterial == simulation.materialRegistry.getLast())
             {
