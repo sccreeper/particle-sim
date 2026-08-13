@@ -20,10 +20,10 @@ namespace sim {
       public:
         Simulation(size_t width, size_t height);
         ~Simulation() = default;
-        void tick();
-        void updatePixelBuffer();
-        const uint8_t *getPixelBuffer();
-        mat::Particle &operator[](size_t idx);
+        void                 tick();
+        void                 updatePixelBuffer();
+        const uint8_t       *getPixelBuffer();
+        mat::Particle       &operator[](size_t idx);
         const mat::Particle &operator[](size_t idx) const;
 
         float ambientTemperature = ZERO_DEGREES_C + 25;
@@ -44,21 +44,21 @@ namespace sim {
 
       private:
         std::vector<mat::Particle> particles;
-        std::vector<bool> movedThisTick; // separate array for the
-                                         // purposes of fast clearing
+        std::vector<bool>          movedThisTick; // separate array for the
+                                                  // purposes of fast clearing
         std::vector<uint8_t> pixelBuffer;
-        size_t width;
-        size_t height;
-        bool leftToRight = false;
+        size_t               width;
+        size_t               height;
+        bool                 leftToRight = false;
 
         inline void move(size_t srcIdx, int64_t destX, int64_t destY) {
             std::swap(particles[srcIdx], particles[utils::xyToIdx(destX, destY, width)]);
             movedThisTick[utils::xyToIdx(destX, destY, width)] = true;
         };
 
-        uint64_t randomBitBuffer;
+        uint64_t        randomBitBuffer;
         std::mt19937_64 rng;
-        int bitsLeft = 0;
+        int             bitsLeft = 0;
     };
 
 }; // namespace sim

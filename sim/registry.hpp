@@ -19,9 +19,9 @@ template <typename T> class Registry {
 
         if (firstFree != -1) {
             int16_t recycledIndex = firstFree;
-            firstFree = registry[recycledIndex].nextFree;
+            firstFree             = registry[recycledIndex].nextFree;
 
-            registry[recycledIndex].item = item;
+            registry[recycledIndex].item   = item;
             registry[recycledIndex].active = true;
 
             return recycledIndex;
@@ -50,9 +50,9 @@ template <typename T> class Registry {
             throw std::runtime_error("Cannot remove invalid or inactive item.");
         }
 
-        registry[id].active = false;
+        registry[id].active   = false;
         registry[id].nextFree = firstFree;
-        firstFree = id;
+        firstFree             = id;
 
         std::erase(allIds, id);
 
@@ -83,12 +83,12 @@ template <typename T> class Registry {
 
   private:
     struct Slot {
-        T item;
+        T       item;
         int16_t nextFree;
-        bool active;
+        bool    active;
     };
 
-    std::vector<Slot> registry;
+    std::vector<Slot>    registry;
     std::vector<int16_t> allIds;
-    int16_t firstFree;
+    int16_t              firstFree;
 };

@@ -15,53 +15,53 @@ namespace sim {
 
     Simulation::Simulation(size_t width, size_t height) {
         this->materialRegistry = Registry<mat::Material>{};
-        rng = std::mt19937_64{std::random_device{}()};
+        rng                    = std::mt19937_64{std::random_device{}()};
 
         materialRegistry.registerItem({
-            .name = "Sand",
-            .meltingPoint = ZERO_DEGREES_C + 1713.0,
-            .boilingPoint = ZERO_DEGREES_C + 2950.0,
-            .mass = 1.92,
-            .flammable = false,
+            .name          = "Sand",
+            .meltingPoint  = ZERO_DEGREES_C + 1713.0,
+            .boilingPoint  = ZERO_DEGREES_C + 2950.0,
+            .mass          = 1.92,
+            .flammable     = false,
             .ignitionPoint = -1,
-            .hasStructure = false,
-            .colour = 0xdcc472ff,
+            .hasStructure  = false,
+            .colour        = 0xdcc472ff,
         });
 
         materialRegistry.registerItem({
-            .name = "Granite",
-            .meltingPoint = ZERO_DEGREES_C + 1260.0,
-            .boilingPoint = ZERO_DEGREES_C + 2700.0,
-            .mass = 1.75,
-            .flammable = false,
+            .name          = "Granite",
+            .meltingPoint  = ZERO_DEGREES_C + 1260.0,
+            .boilingPoint  = ZERO_DEGREES_C + 2700.0,
+            .mass          = 1.75,
+            .flammable     = false,
             .ignitionPoint = -1,
-            .hasStructure = true,
-            .colour = 0xb77257ff,
+            .hasStructure  = true,
+            .colour        = 0xb77257ff,
         });
 
         materialRegistry.registerItem({
-            .name = "Water",
-            .meltingPoint = ZERO_DEGREES_C,
-            .boilingPoint = ZERO_DEGREES_C + 100.0,
-            .mass = 1.0,
-            .flammable = false,
+            .name          = "Water",
+            .meltingPoint  = ZERO_DEGREES_C,
+            .boilingPoint  = ZERO_DEGREES_C + 100.0,
+            .mass          = 1.0,
+            .flammable     = false,
             .ignitionPoint = -1,
-            .hasStructure = true,
-            .colour = 0x2389daff,
+            .hasStructure  = true,
+            .colour        = 0x2389daff,
         });
 
         materialRegistry.registerItem({
-            .name = "Oil",
-            .meltingPoint = ZERO_DEGREES_C - 30.0,
-            .boilingPoint = ZERO_DEGREES_C + 250.0,
-            .mass = 0.79,
-            .flammable = true,
+            .name          = "Oil",
+            .meltingPoint  = ZERO_DEGREES_C - 30.0,
+            .boilingPoint  = ZERO_DEGREES_C + 250.0,
+            .mass          = 0.79,
+            .flammable     = true,
             .ignitionPoint = ZERO_DEGREES_C + 70.0,
-            .hasStructure = true,
-            .colour = 0x631007ff,
+            .hasStructure  = true,
+            .colour        = 0x631007ff,
         });
 
-        this->width = width;
+        this->width  = width;
         this->height = height;
 
         this->particles.resize(width * height,
@@ -80,7 +80,7 @@ namespace sim {
             for (size_t col = 0; col < width; col++) {
 
                 int64_t x = this->leftToRight ? col : (width - 1 - col);
-                size_t i = utils::xyToIdx(x, row, width);
+                size_t  i = utils::xyToIdx(x, row, width);
 
                 if (particles[i].occupied && !movedThisTick[i]) {
 
@@ -89,10 +89,10 @@ namespace sim {
                     switch (particles[i].state) {
                     case mat::Liquid: {
 
-                        bool canGoDownLeft = canSwap(x - 1, y + 1, i);
+                        bool canGoDownLeft  = canSwap(x - 1, y + 1, i);
                         bool canGoDownRight = canSwap(x + 1, y + 1, i);
-                        bool canGoLeft = canSwap(x - 1, y, i);
-                        bool canGoRight = canSwap(x + 1, y, i);
+                        bool canGoLeft      = canSwap(x - 1, y, i);
+                        bool canGoRight     = canSwap(x + 1, y, i);
 
                         // Always prioritise y down
                         if (canSwap(x, y + 1, i)) {
@@ -191,7 +191,7 @@ namespace sim {
     bool Simulation::coinFlip() {
         if (bitsLeft == 0) {
             randomBitBuffer = rng();
-            bitsLeft = 64;
+            bitsLeft        = 64;
         }
 
         bool result = randomBitBuffer & 1;
@@ -254,9 +254,9 @@ namespace sim {
 
         int particlesDrawn = 0;
 
-        x = std::clamp<int>(x, 0, this->width - 1);
-        y = std::clamp<int>(y, 0, this->height - 1);
-        width = std::clamp<int>(x + width - 1, 0, this->width - 1);
+        x      = std::clamp<int>(x, 0, this->width - 1);
+        y      = std::clamp<int>(y, 0, this->height - 1);
+        width  = std::clamp<int>(x + width - 1, 0, this->width - 1);
         height = std::clamp<int>(y + height - 1, 0, this->height - 1);
 
         int drawX0 = width < x ? width : x;
@@ -266,15 +266,15 @@ namespace sim {
 
         for (int i = drawY0; i <= drawY1; i++) {
             for (int j = drawX0; j <= drawX1; j++) {
-                int idx = utils::xyToIdx(j, i, this->width);
+                int  idx        = utils::xyToIdx(j, i, this->width);
                 bool canReplace = replace || (!replace && !this->particles[idx].occupied);
 
                 if (canReplace && (fill || (i == drawY0 || i == drawY1 || j == drawY0 || j == drawY1))) {
                     this->particles[idx] = {
                         .materialId = materialId,
-                        .state = mat::decideState(this->materialRegistry.getItem(materialId),
-                                                  this->ambientTemperature),
-                        .occupied = true,
+                        .state      = mat::decideState(this->materialRegistry.getItem(materialId),
+                                                       this->ambientTemperature),
+                        .occupied   = true,
                     };
                     particlesDrawn++;
                 }

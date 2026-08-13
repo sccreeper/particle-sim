@@ -13,8 +13,8 @@
 #include "registry.hpp"
 #include "simulation.hpp"
 
-const int SIM_WIDTH = 512;
-const int SIM_HEIGHT = 512;
+const int SIM_WIDTH         = 512;
+const int SIM_HEIGHT        = 512;
 const int DEFAULT_FONT_SIZE = 16;
 
 int main() {
@@ -27,8 +27,8 @@ int main() {
 
     uint16_t selectedMaterial = 0;
 
-    int toolOriginX = 0;
-    int toolOriginY = 0;
+    int  toolOriginX   = 0;
+    int  toolOriginY   = 0;
     bool toolBeingUsed = false;
 
     bool paused = true;
@@ -100,8 +100,8 @@ int main() {
 
         if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
             if (!toolBeingUsed) {
-                toolOriginX = GetMouseX();
-                toolOriginY = GetMouseY();
+                toolOriginX   = GetMouseX();
+                toolOriginY   = GetMouseY();
                 toolBeingUsed = true;
             } else {
                 int numDrawn =
