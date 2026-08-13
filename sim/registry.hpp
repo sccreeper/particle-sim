@@ -1,28 +1,23 @@
 #pragma once
 
-#include <cstdint>
-#include <vector>
-#include <stdexcept>
-#include <generator>
 #include <algorithm>
+#include <cstdint>
+#include <generator>
+#include <stdexcept>
+#include <vector>
 
-template <typename T>
-class Registry
-{
-public:
-    Registry(int initialAllocation = 32)
-    {
+template <typename T> class Registry {
+  public:
+    Registry(int initialAllocation = 32) {
         firstFree = -1;
         registry.reserve(initialAllocation);
     }
 
     ~Registry() = default;
 
-    int16_t registerItem(const T &item)
-    {
+    int16_t registerItem(const T &item) {
 
-        if (firstFree != -1)
-        {
+        if (firstFree != -1) {
             int16_t recycledIndex = firstFree;
             firstFree = registry[recycledIndex].nextFree;
 
@@ -33,31 +28,25 @@ public:
         }
 
         int16_t index = static_cast<int16_t>(registry.size());
-        registry.push_back({item,
-                            -1,
-                            true});
-        
-        this->allIds.push_back(index); 
+        registry.push_back({item, -1, true});
+
+        this->allIds.push_back(index);
         std::sort(allIds.begin(), allIds.end());
-        
+
         return index;
     }
 
-    T &getItem(int16_t id)
-    {
+    T &getItem(int16_t id) {
 
-        if (id < 0 || static_cast<size_t>(id) >= registry.size() || !registry[id].active)
-        {
+        if (id < 0 || static_cast<size_t>(id) >= registry.size() || !registry[id].active) {
             throw std::runtime_error("Cannot fetch invalid or inactive item.");
         }
 
         return registry[id].item;
     }
 
-    int16_t removeItem(int16_t id)
-    {
-        if (id < 0 || id >= registry.size() || !registry[id].active)
-        {
+    int16_t removeItem(int16_t id) {
+        if (id < 0 || id >= registry.size() || !registry[id].active) {
             throw std::runtime_error("Cannot remove invalid or inactive item.");
         }
 
@@ -70,42 +59,30 @@ public:
         return id;
     }
 
-    std::generator<T &> items()
-    {
-        for (auto &slot : registry)
-        {
-            if (slot.active)
-            {
+    std::generator<T &> items() {
+        for (auto &slot : registry) {
+            if (slot.active) {
                 co_yield slot.item;
             }
         }
     }
 
     bool itemExists(int16_t id) {
-        if (id < 0 || id >= registry.size())
-        {
+        if (id < 0 || id >= registry.size()) {
             return false;
         }
 
         return registry[id].active;
-        
     }
 
-    const std::vector<int16_t> &ids() {
-        return this->allIds;        
-    }
+    const std::vector<int16_t> &ids() { return this->allIds; }
 
-    int16_t getFirst() {
-        return this->allIds[0];
-    }
+    int16_t getFirst() { return this->allIds[0]; }
 
-    int16_t getLast() {
-        return this->allIds[this->allIds.size() - 1];
-    }
+    int16_t getLast() { return this->allIds[this->allIds.size() - 1]; }
 
-private:
-    struct Slot
-    {
+  private:
+    struct Slot {
         T item;
         int16_t nextFree;
         bool active;

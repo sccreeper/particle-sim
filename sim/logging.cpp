@@ -1,15 +1,14 @@
 #include "logging.hpp"
+
 #include <iostream>
 
-namespace logging
-{
-    
+namespace logging {
+
     void message(const std::string &msg, Level lev) {
 
         std::string infoString;
 
-        switch (lev)
-        {
+        switch (lev) {
         case Info:
             infoString = "Info";
             break;
@@ -22,7 +21,6 @@ namespace logging
         }
 
         std::cout << infoString << ": " << msg << std::endl;
-
     }
 
 } // namespace logging

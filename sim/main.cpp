@@ -1,23 +1,24 @@
-#include <raylib.h>
-#include <rlgl.h>
-#include <iostream>
-#include <cstdint>
-#include "registry.hpp"
-#include "simulation.hpp"
-#include "logging.hpp"
-#include <format>
 #include <algorithm>
 #include <cmath>
-#include <stdlib.h>
+#include <cstdint>
+#include <format>
+#include <iostream>
 #include <string>
+
+#include <raylib.h>
+#include <rlgl.h>
+#include <stdlib.h>
+
+#include "logging.hpp"
 #include "materials.hpp"
+#include "registry.hpp"
+#include "simulation.hpp"
 
 const int SIM_WIDTH = 512;
 const int SIM_HEIGHT = 512;
 const int DEFAULT_FONT_SIZE = 16;
 
-int main()
-{
+int main() {
 
     InitWindow(SIM_WIDTH, SIM_HEIGHT, "Particle Sim");
 
@@ -35,42 +36,28 @@ int main()
 
     SetTargetFPS(60);
 
-    while (!WindowShouldClose())
-    {
+    while (!WindowShouldClose()) {
         // Handle keypresses
-        if (IsKeyPressed(KEY_SPACE))
-        {
+        if (IsKeyPressed(KEY_SPACE)) {
             paused = !paused;
-        }
-        else if (paused && IsKeyPressed(KEY_Q))
-        {
+        } else if (paused && IsKeyPressed(KEY_Q)) {
             simulation.tick();
         }
 
         bool rPressed = IsKeyPressed(KEY_R);
         bool tPressed = IsKeyPressed(KEY_T);
-        if (rPressed || tPressed)
-        {
-
-            std::cout << std::boolalpha << tPressed << std::endl;
+        if (rPressed || tPressed) {
 
             bool goRight = rPressed;
 
-            if (goRight && selectedMaterial == simulation.materialRegistry.getLast())
-            {
+            if (goRight && selectedMaterial == simulation.materialRegistry.getLast()) {
                 selectedMaterial = simulation.materialRegistry.getFirst();
-            }
-            else if (!goRight && selectedMaterial == simulation.materialRegistry.getFirst())
-            {
+            } else if (!goRight && selectedMaterial == simulation.materialRegistry.getFirst()) {
                 selectedMaterial = simulation.materialRegistry.getLast();
-            }
-            else
-            {
+            } else {
                 int newId = static_cast<int>(selectedMaterial) + (goRight ? 1 : -1);
-                while (!std::ranges::contains(simulation.materialRegistry.ids(), newId))
-                {
-                    if (static_cast<int>(selectedMaterial) - 1 < simulation.materialRegistry.getFirst())
-                    {
+                while (!std::ranges::contains(simulation.materialRegistry.ids(), newId)) {
+                    if (static_cast<int>(selectedMaterial) - 1 < simulation.materialRegistry.getFirst()) {
                         newId = simulation.materialRegistry.getLast();
                         continue;
                     }
@@ -82,14 +69,14 @@ int main()
             }
         }
 
-        if (!paused)
-        {
+        if (!paused) {
             simulation.tick();
         }
         simulation.updatePixelBuffer();
 
         // Update render texture
-        rlUpdateTexture(renderTexture.texture.id, 0, 0, SIM_WIDTH, SIM_WIDTH, RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, simulation.getPixelBuffer());
+        rlUpdateTexture(renderTexture.texture.id, 0, 0, SIM_WIDTH, SIM_WIDTH,
+                        RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, simulation.getPixelBuffer());
 
         // Drawing
         BeginDrawing();
@@ -97,47 +84,37 @@ int main()
         ClearBackground(BLACK);
 
         DrawTexture(renderTexture.texture, 0, 0, WHITE);
-        DrawText(
-            std::format("Material: {} \n{}", simulation.materialRegistry.getItem(selectedMaterial).name, paused ? "Paused" : "Running").c_str(),
-            10,
-            10,
-            DEFAULT_FONT_SIZE,
-            WHITE);
+        DrawText(std::format("Material: {} \n{}", simulation.materialRegistry.getItem(selectedMaterial).name,
+                             paused ? "Paused" : "Running")
+                     .c_str(),
+                 10, 10, DEFAULT_FONT_SIZE, WHITE);
 
-        if (toolBeingUsed)
-        {
+        if (toolBeingUsed) {
 
-            DrawRectangleLines(
-                (GetMouseX() > toolOriginX ? toolOriginX : GetMouseX()),
-                (GetMouseY() > toolOriginY ? toolOriginY : GetMouseY()),
-                std::abs(GetMouseX() - toolOriginX),
-                std::abs(GetMouseY() - toolOriginY),
-                RED);
+            DrawRectangleLines((GetMouseX() > toolOriginX ? toolOriginX : GetMouseX()),
+                               (GetMouseY() > toolOriginY ? toolOriginY : GetMouseY()),
+                               std::abs(GetMouseX() - toolOriginX), std::abs(GetMouseY() - toolOriginY), RED);
 
             DrawRectangle(toolOriginX - 2, toolOriginY - 2, 4, 4, WHITE);
             DrawRectangle(GetMouseX() - 2, GetMouseY() - 2, 4, 4, WHITE);
         }
 
-        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
-        {
-            if (!toolBeingUsed)
-            {
+        if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+            if (!toolBeingUsed) {
                 toolOriginX = GetMouseX();
                 toolOriginY = GetMouseY();
                 toolBeingUsed = true;
-            }
-            else
-            {
-                int numDrawn = simulation.drawRectangle(
-                    (GetMouseX() > toolOriginX ? toolOriginX : GetMouseX()),
-                    (GetMouseY() > toolOriginY ? toolOriginY : GetMouseY()),
-                    std::abs(GetMouseX() - toolOriginX),
-                    std::abs(GetMouseY() - toolOriginY),
-                    selectedMaterial);
+            } else {
+                int numDrawn =
+                    simulation.drawRectangle((GetMouseX() > toolOriginX ? toolOriginX : GetMouseX()),
+                                             (GetMouseY() > toolOriginY ? toolOriginY : GetMouseY()),
+                                             std::abs(GetMouseX() - toolOriginX),
+                                             std::abs(GetMouseY() - toolOriginY), selectedMaterial);
 
                 toolBeingUsed = false;
 
-                logging::message(std::format("{} {} particles drawn", numDrawn, simulation.materialRegistry.getItem(selectedMaterial).name));
+                logging::message(std::format("{} {} particles drawn", numDrawn,
+                                             simulation.materialRegistry.getItem(selectedMaterial).name));
             }
         }
 

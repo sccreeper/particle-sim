@@ -1,21 +1,14 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <string>
-#include <array>
 
-namespace mat
-{
+namespace mat {
 
-    enum State
-    {
-        Solid,
-        Liquid,
-        Gas
-    };
+    enum State { Solid, Liquid, Gas };
 
-    struct Material
-    {
+    struct Material {
         std::string name;
         double meltingPoint;
         double boilingPoint;
@@ -28,8 +21,7 @@ namespace mat
 
     State decideState(const Material &mat, float temp);
 
-    struct Particle
-    {
+    struct Particle {
         int16_t materialId;
         int32_t lifetime;
         std::array<float, 2> velocity;
@@ -40,4 +32,4 @@ namespace mat
         bool occupied;
     };
 
-}
+} // namespace mat

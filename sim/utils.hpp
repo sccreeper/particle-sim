@@ -16,21 +16,11 @@ namespace utils {
 
     uint8_t getCheckCode(const int8_t displX, const int8_t displY);
 
-    inline uint64_t idxToX(uint64_t idx, uint64_t width) {
-        return idx % width;
-    };
-    inline uint64_t idxToY(uint64_t idx, uint64_t width) {
-        return idx / width;
-    };
+    inline uint64_t idxToX(uint64_t idx, uint64_t width) { return idx % width; };
+    inline uint64_t idxToY(uint64_t idx, uint64_t width) { return idx / width; };
 
-    inline uint64_t xyToIdx(uint64_t x, uint64_t y, uint64_t width) {
-        return (y * width) + x;
-    };
+    inline uint64_t xyToIdx(uint64_t x, uint64_t y, uint64_t width) { return (y * width) + x; };
 
-    namespace shapes {
+    namespace shapes {}
 
-        
-
-    }
-
-}
+} // namespace utils
