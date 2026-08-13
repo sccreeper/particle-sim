@@ -91,35 +91,62 @@ namespace sim
                     {
                     case mat::Liquid:
                     {
-                        int deltaX = 0;
-                        bool moveX = this->coinFlip();
 
-                        if (moveX)
-                        {
-                            bool direction = this->coinFlip();
-                            deltaX = direction ? 1 : -1;
-
-                            if (x + deltaX < 0 || x + deltaX >= static_cast<int64_t>(width))
-                            {
-                                deltaX *= -1;
-                            }
-                        }
-
-                        int deltaY = 0;
-                        if (y + 1 < static_cast<int64_t>(height))
-                            deltaY = +1;
+                        bool canGoDownLeft = canSwap(x - 1, y + 1, i);
+                        bool canGoDownRight = canSwap(x + 1, y + 1, i);
+                        bool canGoLeft = canSwap(x - 1, y, i);
+                        bool canGoRight = canSwap(x + 1, y, i);
 
                         // Always prioritise y down
-                        if (canSwap(x, y + deltaY, i))
+                        if (canSwap(x, y + 1, i))
                         {
                             movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x, y + deltaY, this->width)]);
+                            std::swap(particles[i], particles[utils::xyToIdx(x, y + 1, this->width)]);
                         }
-                        else if (canSwap(x + deltaX, y + deltaY, i))
+                        else if (canGoDownLeft && canGoDownRight)
+                        {
+                            if (coinFlip())
+                            {
+                                movedThisTick[i] = true;
+                                std::swap(particles[i], particles[utils::xyToIdx(x - 1, y + 1, this->width)]);
+                            }
+                            else
+                            {
+                                movedThisTick[i] = true;
+                                std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + 1, this->width)]);
+                            }
+                        }
+                        else if (canGoDownLeft)
                         {
                             movedThisTick[i] = true;
-                            std::swap(particles[i], particles[utils::xyToIdx(x + deltaX, y + deltaY, this->width)]);
+                            std::swap(particles[i], particles[utils::xyToIdx(x - 1, y + 1, this->width)]);
                         }
+                        else if (canGoDownRight)
+                        {
+                            movedThisTick[i] = true;
+                            std::swap(particles[i], particles[utils::xyToIdx(x + 1, y + 1, this->width)]);
+                        } else if (canGoLeft && canGoRight)
+                        {
+                            if (coinFlip())
+                            {
+                                movedThisTick[i] = true;
+                                std::swap(particles[i], particles[utils::xyToIdx(x - 1, y, this->width)]);
+                            } else {
+                                movedThisTick[i] = true;
+                                std::swap(particles[i], particles[utils::xyToIdx(x + 1, y, this->width)]);
+                            }
+                            
+                        } else if (canGoLeft)
+                        {
+                            movedThisTick[i] = true;
+                            std::swap(particles[i], particles[utils::xyToIdx(x - 1, y, this->width)]);
+                        } else if (canGoRight) {
+                            movedThisTick[i] = true;
+                            std::swap(particles[i], particles[utils::xyToIdx(x + 1, y, this->width)]);
+                        }
+                        
+                        
+                        
 
                         break;
                     }
