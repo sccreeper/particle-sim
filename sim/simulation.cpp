@@ -1,6 +1,7 @@
 #include "simulation.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <cstring>
 #include <format>
@@ -15,7 +16,7 @@
 
 namespace sim {
 
-    Simulation::Simulation(size_t width, size_t height) {
+    Simulation::Simulation(size_t width, size_t height, int64_t speed) {
         this->materialRegistry = Registry<mat::Material>{};
         rng                    = std::mt19937_64{std::random_device{}()};
 
@@ -70,6 +71,8 @@ namespace sim {
                                mat::Particle{.temperature = ambientTemperature, .occupied = false});
         this->pixelBuffer.resize(width * height * 4, 0x000000FF);
         this->movedThisTick.resize(width * height, false);
+
+        this->simSpeed.store(speed, std::memory_order_release);
     }
 
     Simulation::~Simulation() { stop(); }
@@ -136,11 +139,21 @@ namespace sim {
 
             tick();
 
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            std::this_thread::sleep_for(std::chrono::microseconds(simSpeed.load(std::memory_order_acquire)));
         }
     }
 
     bool Simulation::getIsPaused() { return isPausedAtomic.load(std::memory_order_acquire); }
+
+    int64_t Simulation::getSimSpeed() { return simSpeed.load(std::memory_order_acquire); }
+
+    void Simulation::setSimSpeed(int64_t val) {
+        if (val < 1) {
+            val = 1;
+        }
+
+        simSpeed.store(val, std::memory_order_release);
+    }
 
     void Simulation::tick() {
         std::lock_guard<std::mutex> lock(particleAccessMutex);

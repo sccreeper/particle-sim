@@ -2,7 +2,10 @@
 #include <cmath>
 #include <cstdint>
 #include <format>
+#include <iterator>
+#include <map>
 #include <string>
+#include <utility>
 
 #include <raylib.h>
 #include <rlgl.h>
@@ -26,7 +29,13 @@ int main() {
 
     InitWindow(SIM_WIDTH, SIM_HEIGHT, "Particle Sim");
 
-    auto simulation = sim::Simulation{SIM_WIDTH, SIM_HEIGHT};
+    std::map<int64_t, std::string> simSpeeds = {{1, "1us"},         {10, "10us"},     {50, "50us"},
+                                                {100, "100us"},     {1'000, "1ms"},   {10'000, "10ms"},
+                                                {100'000, "100ms"}, {1'000'000, "1s"}};
+
+    logging::message(std::format("Sim speed: {}", simSpeeds.begin()->first));
+
+    auto simulation = sim::Simulation{SIM_WIDTH, SIM_HEIGHT, simSpeeds.begin()->first};
     simulation.printDebugInfo();
     auto renderTexture = LoadRenderTexture(SIM_WIDTH, SIM_HEIGHT);
 
@@ -43,7 +52,6 @@ int main() {
     while (!WindowShouldClose()) {
         // Handle keypresses
         if (IsKeyPressed(KEY_SPACE)) {
-            logging::message(std::format("{}", simulation.getIsPaused()));
 
             if (simulation.getIsPaused()) {
                 logging::message("Paused, resuming");
@@ -52,6 +60,27 @@ int main() {
                 simulation.pause();
             }
         }
+
+        bool commaPressed    = IsKeyPressed(KEY_COMMA);
+        bool fullStopPressed = IsKeyPressed(KEY_PERIOD);
+        if (commaPressed || fullStopPressed) {
+
+            if (commaPressed && simulation.getSimSpeed() == simSpeeds.begin()->first) {
+                simulation.setSimSpeed(std::prev(simSpeeds.end())->first);
+            } else if (fullStopPressed && simulation.getSimSpeed() == std::prev(simSpeeds.end())->first) {
+                simulation.setSimSpeed(simSpeeds.begin()->first);
+            } else {
+
+                auto current = simSpeeds.find(simulation.getSimSpeed());
+
+                if (commaPressed) {
+                    simulation.setSimSpeed(std::prev(current, 1)->first);
+                } else if (fullStopPressed) {
+                    simulation.setSimSpeed(std::next(current, 1)->first);
+                }
+            }
+        }
+
         // else if (paused && IsKeyPressed(KEY_Q)) {
         //     simulation.tick();
         // }
@@ -91,8 +120,10 @@ int main() {
         ClearBackground(BLACK);
 
         DrawTexture(renderTexture.texture, 0, 0, WHITE);
-        DrawText(std::format("Material: {} \n{}", simulation.materialRegistry.getItem(selectedMaterial).name,
-                             simulation.getIsPaused() ? "Paused" : "Running")
+        DrawText(std::format("Material: {} \n{}\nSpeed: {}",
+                             simulation.materialRegistry.getItem(selectedMaterial).name,
+                             simulation.getIsPaused() ? "Paused" : "Running",
+                             simSpeeds[simulation.getSimSpeed()])
                      .c_str(),
                  10, 10, DEFAULT_FONT_SIZE, WHITE);
 

@@ -21,7 +21,7 @@ namespace sim {
     class Simulation {
 
       public:
-        Simulation(size_t width, size_t height);
+        Simulation(size_t width, size_t height, int64_t speed = 100);
         ~Simulation();
         void                 tick();
         void                 updatePixelBuffer();
@@ -51,6 +51,9 @@ namespace sim {
         void stop();
         bool getIsPaused();
 
+        int64_t getSimSpeed();
+        void    setSimSpeed(int64_t val);
+
       private:
         std::vector<mat::Particle> particles;
         std::mutex                 particleAccessMutex;
@@ -76,6 +79,8 @@ namespace sim {
         std::atomic_bool        isThreadRunning{false};
         std::condition_variable resumeNotifier;
         std::thread             simThread;
+
+        std::atomic<int64_t> simSpeed;
 
         void runLoop();
     };
