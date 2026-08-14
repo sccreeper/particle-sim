@@ -20,14 +20,22 @@ const int SIM_WIDTH         = 512;
 const int SIM_HEIGHT        = 512;
 const int DEFAULT_FONT_SIZE = 16;
 
-int main() {
 #ifdef NDEBUG
-    logging::message("Running in release");
+const bool IN_RELEASE = true;
 #else
-    logging::message("Running in debug", logging::Debug);
+const bool IN_RELEASE = false;
 #endif
 
-    InitWindow(SIM_WIDTH, SIM_HEIGHT, "Particle Sim");
+int main() {
+
+    if (IN_RELEASE) {
+        logging::message("Running in release");
+    } else {
+        logging::message("Running in debug", logging::Debug);
+    }
+
+    InitWindow(SIM_WIDTH, SIM_HEIGHT,
+               std::format("Particle Sim - {}", IN_RELEASE ? "Release" : "Debug").c_str());
 
     std::map<int64_t, std::string> simSpeeds = {{1, "1us"},         {10, "10us"},     {50, "50us"},
                                                 {100, "100us"},     {1'000, "1ms"},   {10'000, "10ms"},
