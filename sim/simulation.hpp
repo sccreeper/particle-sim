@@ -16,6 +16,8 @@
 
 namespace sim {
 
+    enum RenderingMode { ShowColour, ShowPressure };
+
     const double ZERO_DEGREES_C = 273.15;
 
     class Simulation {
@@ -28,6 +30,7 @@ namespace sim {
         const uint8_t       *getPixelBuffer();
         mat::Particle       &operator[](size_t idx);
         const mat::Particle &operator[](size_t idx) const;
+        RenderingMode        renderingMode = ShowColour;
 
         float ambientTemperature = ZERO_DEGREES_C + 25;
 
@@ -63,6 +66,9 @@ namespace sim {
         size_t               width;
         size_t               height;
         bool                 leftToRight = false;
+
+        float minCompression = 0;
+        float maxCompression = 0;
 
         inline void move(size_t srcIdx, int64_t destX, int64_t destY) {
             std::swap(particles[srcIdx], particles[utils::xyToIdx(destX, destY, width)]);

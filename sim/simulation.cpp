@@ -5,6 +5,7 @@
 #include <chrono>
 #include <cstring>
 #include <format>
+#include <limits>
 #include <mutex>
 #include <random>
 #include <string>
@@ -162,6 +163,39 @@ namespace sim {
 
         std::fill(movedThisTick.begin(), movedThisTick.end(), false);
 
+        this->maxCompression = std::numeric_limits<float>::min();
+        this->minCompression = std::numeric_limits<float>::max();
+
+        // Firstly calculate compression for liquid particles
+        for (size_t i = 0; i < particles.size(); i++) {
+            if (particles[i].occupied && particles[i].state == mat::Liquid) {
+
+                float compressionCounter = 0;
+
+                uint64_t particleX = utils::idxToX(i, width);
+                uint64_t particleY = utils::idxToY(i, width);
+
+                do {
+                    auto particleRef = &particles[utils::xyToIdx(particleX, particleY, width)];
+
+                    if (particleRef->state == mat::Liquid) {
+                        compressionCounter += materialRegistry.getItem(particleRef->materialId).mass;
+                    } else {
+                        break;
+                    }
+                    particleY--;
+                } while (particleY >= 0);
+
+                particles[i].compression = compressionCounter;
+                if (particles[i].compression < minCompression) {
+                    this->minCompression = particles[i].compression;
+                } else if (particles[i].compression > maxCompression) {
+                    this->maxCompression = particles[i].compression;
+                }
+            }
+        }
+
+        // Then move particles
         for (size_t row = 0; row < height; row++) {
             for (size_t col = 0; col < width; col++) {
 
@@ -275,7 +309,24 @@ namespace sim {
                 continue;
             }
 
-            uint32_t colour = materialRegistry.getItem(this->particles[i].materialId).colour;
+            uint32_t colour = 0x000000FF;
+
+            switch (this->renderingMode) {
+            case ShowColour:
+                colour = materialRegistry.getItem(this->particles[i].materialId).colour;
+                break;
+            case ShowPressure: {
+
+                if (particles[i].state != mat::Liquid) {
+                    colour = materialRegistry.getItem(this->particles[i].materialId).colour;
+                } else {
+                    colour = utils::linearlyInterpolateColour(minCompression, maxCompression, 0xFF0000FF,
+                                                              0xFFFFFFFF, particles[i].compression);
+                }
+
+                break;
+            }
+            }
 
             this->pixelBuffer[(i * 4) + 0] = static_cast<uint8_t>((colour >> 24) & 0xFF);
             this->pixelBuffer[(i * 4) + 1] = static_cast<uint8_t>((colour >> 16) & 0xFF);

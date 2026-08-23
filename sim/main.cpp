@@ -40,6 +40,8 @@ int main() {
     std::map<int64_t, std::string> simSpeeds = {{1, "1us"},         {10, "10us"},     {50, "50us"},
                                                 {100, "100us"},     {1'000, "1ms"},   {10'000, "10ms"},
                                                 {100'000, "100ms"}, {1'000'000, "1s"}};
+    std::map<sim::RenderingMode, std::string> renderingModeStrings = {{sim::ShowColour, "Colour"},
+                                                                      {sim::ShowPressure, "Pressure"}};
 
     logging::message(std::format("Sim speed: {}", simSpeeds.begin()->first));
 
@@ -118,6 +120,11 @@ int main() {
             }
         }
 
+        if (IsKeyPressed(KEY_G)) {
+            simulation.renderingMode =
+                simulation.renderingMode == sim::ShowColour ? sim::ShowPressure : sim::ShowColour;
+        }
+
         simulation.updatePixelBuffer();
         rlUpdateTexture(renderTexture.texture.id, 0, 0, SIM_WIDTH, SIM_WIDTH,
                         RL_PIXELFORMAT_UNCOMPRESSED_R8G8B8A8, simulation.getPixelBuffer());
@@ -128,10 +135,11 @@ int main() {
         ClearBackground(BLACK);
 
         DrawTexture(renderTexture.texture, 0, 0, WHITE);
-        DrawText(std::format("Material: {} \n{}\nSpeed: {}",
+        DrawText(std::format("Material: {} \n{}\nSpeed: {}\n{}",
                              simulation.materialRegistry.getItem(selectedMaterial).name,
                              simulation.getIsPaused() ? "Paused" : "Running",
-                             simSpeeds[simulation.getSimSpeed()])
+                             simSpeeds[simulation.getSimSpeed()],
+                             renderingModeStrings[simulation.renderingMode])
                      .c_str(),
                  10, 10, DEFAULT_FONT_SIZE, WHITE);
 

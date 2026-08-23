@@ -10,11 +10,11 @@ namespace mat {
 
     struct Material {
         std::string name;
-        double      meltingPoint;
-        double      boilingPoint;
-        double      mass;
+        float       meltingPoint;
+        float       boilingPoint;
+        float       mass;
         bool        flammable;
-        double      ignitionPoint;
+        float       ignitionPoint;
         bool        hasStructure;
         uint32_t    colour;
     };
@@ -28,6 +28,7 @@ namespace mat {
         float                temperature;
         State                state;
         uint8_t              temperatureInteractions;
+        float                compression;
 
         bool occupied;
     };
